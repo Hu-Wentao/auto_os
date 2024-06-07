@@ -1,0 +1,9 @@
+setuptools~=69.5.1
+#
+tenacity~=8.3.0
+pyautogui
+pyperclip~=1.8.2
+loguru~=0.7.2
+auto_os~=0.1
+pyobjc-framework-Quartz # macos API
+PyCocoa # macos API
