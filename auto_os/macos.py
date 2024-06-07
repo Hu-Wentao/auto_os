@@ -188,8 +188,8 @@ def get_window_info(name: str) -> Optional[WindowInfo]:
     # 返回 窗口坐标x,y 换行 窗口大小w,h
     process = subprocess.run(['osascript', '-e', sc_window_info], capture_output=True, text=True)
     output = process.stdout.strip()
-    print(output)
-    if output == '0, 0, -1, -1':
+    # print(output)
+    if output == '0, 0, -1, -1' or len(output) == 0:  # on error
         return None  # 没有找到应用(应用没启动)
     sp = output.split(',')
     left, top, width, height = map(int, sp)
@@ -263,11 +263,6 @@ def paste(text: Optional[str] = None):
     pyautogui.keyUp('command')
 
 
-import Quartz
-import LaunchServices
-from Cocoa import NSURL
-import Quartz.CoreGraphics as CG
-
 Box = tuple[int, int, int, int]  # 左上宽高
 
 import Quartz.CoreGraphics as CG
@@ -303,16 +298,3 @@ def screenshot(region: Box | None = None) -> Image.Image:
     bytes_per_row = CG.CGImageGetBytesPerRow(image)
     pil_image = Image.frombuffer("RGBA", (width, height), data, "raw", "BGRA", bytes_per_row, 1)
     return pil_image
-
-
-if __name__ == '__main__':
-    import time
-
-    # Capture full screen
-    # screenshot("/tmp/testscreenshot_full.png")
-
-    # Capture region (100x100 box from top-left)
-    s = time.time()
-    prm: Box = (-970, 210, 697, 551)
-    screenshot("/tmp/testscreenshot_partial.png", region=prm)
-    print(time.time() - s)
