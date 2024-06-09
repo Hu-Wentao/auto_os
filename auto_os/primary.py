@@ -1,5 +1,8 @@
 from typing import TypedDict
 
+Box = tuple[int, int, int, int]  # 左,上,宽,高
+BBox = tuple[int, int, int, int]  # 左,上,右,下
+
 
 class WindowInfo(TypedDict):
     app_name: str
