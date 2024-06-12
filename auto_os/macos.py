@@ -11,7 +11,7 @@ import pyautogui
 from PIL import Image
 from loguru import logger
 
-from auto_os import App, WindowInfo
+from auto_os import App, WindowInfo, Box
 from tenacity import retry, stop_after_attempt, wait_fixed
 
 
@@ -89,7 +89,6 @@ def deep_copy(src: str, dst: str, show_log=False):
             shutil.copy2(src_item, dst_item)
 
 
-@retry(stop=stop_after_attempt(3), wait=wait_fixed(2))
 def reset_folder(folder: str):  # rmtree 可能报错 xx路径不存在
     print(f"reset folder [{folder}]")
     if os.path.exists(folder):
@@ -262,8 +261,6 @@ def paste(text: Optional[str] = None):
     pyautogui.press('v')
     pyautogui.keyUp('command')
 
-
-Box = tuple[int, int, int, int]  # 左上宽高
 
 import Quartz.CoreGraphics as CG
 
