@@ -70,12 +70,22 @@ def find_active_app_in_spaces(app: Union[App, str], find_from_left=True, find_ma
     logger.error(f"没找到活跃的[{app}]")
 
 
-def deep_copy(src: str, dst: str, show_log=False):
+def deep_copy(src: str, dst: str, show_log=False, reset_dst=True):
+    """复制文件夹及内容
+    注意,同时也复制符号链接, 而不是复制指向的文件, 适用于container存档覆盖场景
+    :param src: 源
+    :param dst: 目标
+    :param show_log: 打印日志
+    :param reset_dst: True 如果dst已经存在,则清空内容
+    :return:
+    """
     if show_log:
         print(f"deep_copy [{src} -> {dst}]")
-    if not os.path.exists(dst):
-        os.makedirs(dst)
+    if os.path.exists(dst) and reset_dst:  # 已存在则清空内容
+        shutil.rmtree(dst)
 
+    if not os.path.exists(dst):  # 确保folder存在
+        os.makedirs(dst)
     for item in os.listdir(src):
         src_item = os.path.join(src, item)
         dst_item = os.path.join(dst, item)

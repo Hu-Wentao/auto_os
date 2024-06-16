@@ -1,6 +1,8 @@
 from random import randint
 from typing import TypedDict, Protocol
 
+from typing_extensions import deprecated
+
 Box = tuple[int, int, int, int]  # 左,上,宽,高
 BBox = tuple[int, int, int, int]  # 左,上,右,下
 
@@ -55,9 +57,18 @@ class BBoxLike(Protocol):
         return rst
 
 
+@deprecated('使用[WindowBox]')
 class WindowInfo(TypedDict):
     app_name: str
     box: tuple[int, int, int, int]  # 截图box,左上宽高;
+
+
+class WindowBox(BoxLike):
+    left: int
+    top: int
+    width: int
+    height: int
+    label: str  # 窗口标签(app_name)
 
 
 class App(TypedDict):
