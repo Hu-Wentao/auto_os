@@ -20,8 +20,14 @@ class BoxLike(Protocol):
     def get_box(self) -> Box:
         return self.left, self.top, self.width, self.height
 
-    def to_bbox(self) -> 'BBoxLike':
-        return BBoxLike(self.left, self.top, self.left + self.width, self.top + self.height, )
+    def offset(self, delta_x: int = 0, delta_y: int = 0):
+        return BoxLike(self.left + delta_x, self.top + delta_y, self.width, self.height)
+
+    def to_bbox(self, offset: tuple[int, int] = (0, 0)) -> 'BBoxLike':  # offset x,y
+        rst = BBoxLike(self.left, self.top, self.left + self.width, self.top + self.height)
+        if offset != (0, 0):
+            rst = rst.offset(offset[0], offset[1])
+        return rst
 
 
 class BBoxLike(Protocol):
@@ -39,8 +45,14 @@ class BBoxLike(Protocol):
     def get_bbox(self) -> BBox:
         return self.left, self.top, self.right, self.bottom
 
-    def to_box(self) -> BoxLike:
-        return BoxLike(self.left, self.top, self.right - self.left, self.bottom - self.top)
+    def offset(self, delta_x: int = 0, delta_y: int = 0):
+        return BoxLike(self.left + delta_x, self.top + delta_y, self.right + delta_x, self.bottom + delta_y)
+
+    def to_box(self, offset: tuple[int, int] = (0, 0)) -> BoxLike:  # offset x,y
+        rst = BoxLike(self.left, self.top, self.right - self.left, self.bottom - self.top)
+        if offset != (0, 0):
+            rst = rst.offset(offset[0], offset[1])
+        return rst
 
 
 class WindowInfo(TypedDict):
