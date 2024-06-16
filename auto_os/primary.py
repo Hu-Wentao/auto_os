@@ -1,5 +1,5 @@
 from random import randint
-from typing import TypedDict, Protocol
+from typing import TypedDict
 
 from typing_extensions import deprecated
 
@@ -7,54 +7,94 @@ Box = tuple[int, int, int, int]  # 左,上,宽,高
 BBox = tuple[int, int, int, int]  # 左,上,右,下
 
 
-class BoxLike(Protocol):
-    def __init__(self, left: int, right: int, width: int, height: int):
-        self.left = left
-        self.top = right
-        self.width = width
-        self.height = height
+class BoxLike(TypedDict):
+    left: int
+    top: int
+    width: int
+    height: int
 
-    def random_point(self):
-        x = randint(self.left, self.left + self.width)
-        y = randint(self.top, self.top + self.height)
+
+class BoxMethod:
+    @staticmethod
+    def random_point(box: BoxLike) -> tuple[int, int]:
+        x = randint(box["left"], box["left"] + box["width"])
+        y = randint(box["top"], box["top"] + box["height"])
         return x, y
 
-    def get_box(self) -> Box:
-        return self.left, self.top, self.width, self.height
+    @staticmethod
+    def get_box(box: BoxLike) -> Box:
+        return box["left"], box["top"], box["width"], box["height"]
 
-    def offset(self, delta_x: int = 0, delta_y: int = 0):
-        return BoxLike(self.left + delta_x, self.top + delta_y, self.width, self.height)
+    @staticmethod
+    def of_box(bbox: Box) -> BoxLike:
+        return BoxLike(**{
+            'left': bbox[0],
+            'top': bbox[1],
+            'width': bbox[2],
+            'height': bbox[3],
+        })
 
-    def to_bbox(self, offset: tuple[int, int] = (0, 0)) -> 'BBoxLike':  # offset x,y
-        rst = BBoxLike(self.left, self.top, self.left + self.width, self.top + self.height)
-        if offset != (0, 0):
-            rst = rst.offset(offset[0], offset[1])
-        return rst
+    @staticmethod
+    def offset(box: BoxLike, delta_x: int = 0, delta_y: int = 0) -> BoxLike:
+        return BoxLike(**{
+            **box,
+            'left': box["left"] + delta_x,
+            'top': box["top"] + delta_y,
+        })
+
+    @staticmethod
+    def to_bbox(box: BoxLike) -> 'BBoxLike':
+        return BBoxLike(**{
+            **box,
+            'right': box["left"] + box["width"],
+            'bottom': box["top"] + box["height"],
+        })
 
 
-class BBoxLike(Protocol):
-    def __init__(self, left: int, top: int, right: int, bottom: int):
-        self.left = left
-        self.top = top
-        self.right = right
-        self.bottom = bottom
+class BBoxLike(TypedDict):
+    left: int
+    top: int
+    right: int
+    bottom: int
 
-    def random_point(self):
-        x = randint(self.left, self.right)
-        y = randint(self.top, self.bottom)
+
+class BBoxMethod:
+    @staticmethod
+    def random_point(bbox: BBoxLike) -> tuple[int, int]:
+        x = randint(bbox["left"], bbox["right"])
+        y = randint(bbox["top"], bbox["bottom"])
         return x, y
 
-    def get_bbox(self) -> BBox:
-        return self.left, self.top, self.right, self.bottom
+    @staticmethod
+    def get_bbox(bbox: BBoxLike) -> BBox:
+        return bbox["left"], bbox["top"], bbox["right"], bbox["bottom"]
 
-    def offset(self, delta_x: int = 0, delta_y: int = 0):
-        return BoxLike(self.left + delta_x, self.top + delta_y, self.right + delta_x, self.bottom + delta_y)
+    @staticmethod
+    def of_bbox(bbox: BBox) -> BBoxLike:
+        return BBoxLike(**{
+            'left': bbox[0],
+            'top': bbox[1],
+            'right': bbox[2],
+            'bottom': bbox[3],
+        })
 
-    def to_box(self, offset: tuple[int, int] = (0, 0)) -> BoxLike:  # offset x,y
-        rst = BoxLike(self.left, self.top, self.right - self.left, self.bottom - self.top)
-        if offset != (0, 0):
-            rst = rst.offset(offset[0], offset[1])
-        return rst
+    @staticmethod
+    def offset(bbox: BBoxLike, delta_x: int = 0, delta_y: int = 0) -> BBoxLike:
+        return BBoxLike(**{
+            'left': bbox["left"] + delta_x,
+            'top': bbox["top"] + delta_y,
+            'right': bbox["right"] + delta_x,
+            'bottom': bbox["bottom"] + delta_y,
+        })
+
+    @staticmethod
+    def to_box(bbox: BBoxLike) -> 'BoxLike':
+        return BoxLike(**{
+            'left': bbox["left"],
+            'top': bbox["top"],
+            'width': bbox["right"] - bbox["left"],
+            'height': bbox["bottom"] - bbox["top"],
+        })
 
 
 @deprecated('使用[WindowBox]')
@@ -64,11 +104,12 @@ class WindowInfo(TypedDict):
 
 
 class WindowBox(BoxLike):
-    left: int
-    top: int
-    width: int
-    height: int
-    label: str  # 窗口标签(app_name)
+    # left: int
+    # top: int
+    # width: int
+    # height: int
+    app_name: str  # 应用名称
+    process: str  # 进程名称, 例如vscode主页进程名为 Electoral; pycharm特定代码窗口 进程名为代码窗口名 test.py等
 
 
 class App(TypedDict):
