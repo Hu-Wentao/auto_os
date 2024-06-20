@@ -12,13 +12,11 @@ if (_package_path := os.path.dirname(__file__)) not in sys.path:
 # 1. 导入公共依赖
 from .primary import *
 
-# 2. 导入特定平台
-if sys.platform == "darwin":
-    from .macos import *
-elif sys.platform == "win32":
-    from .windows import *
-else:
-    raise RuntimeError(f'尚未支持的操作系统[{sys.platform}]')
+# 文件系统模块
+import fs
 
-# 3. 最后导入 general
-from .general import *
+# 外设: 鼠标,键盘,屏幕
+import pe
+
+# 窗口管理
+import wm

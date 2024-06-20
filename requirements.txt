@@ -7,3 +7,5 @@ loguru~=0.7.2
 auto_os~=0.1
 pyobjc-framework-Quartz # macos API
 PyCocoa # macos API
+pillow~=10.3.0
+typing_extensions~=4.11.0
