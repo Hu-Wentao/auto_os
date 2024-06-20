@@ -14,16 +14,30 @@ class BoxLike(TypedDict):
     height: int
 
 
-class BoxMethod:
+class BBoxLike(TypedDict):
+    left: int
+    top: int
+    right: int
+    bottom: int
+
+
+class BoxesMethod:
+
     @staticmethod
-    def random_point(box: BoxLike) -> tuple[int, int]:
-        x = randint(box["left"], box["left"] + box["width"])
-        y = randint(box["top"], box["top"] + box["height"])
+    def random_point(bbox: BoxLike | BBoxLike) -> tuple[int, int]:
+        bbox: BBoxLike = BoxesMethod.to_bbox(box=bbox)
+        x = randint(bbox["left"], bbox["right"])
+        y = randint(bbox["top"], bbox["bottom"])
         return x, y
 
     @staticmethod
-    def get_box(box: BoxLike) -> Box:
+    def get_box(box: BoxLike | BBoxLike) -> Box:
+        box: BoxLike = BoxesMethod.to_box(bbox=box)
         return box["left"], box["top"], box["width"], box["height"]
+
+    @staticmethod
+    def get_bbox(bbox: BBoxLike | BoxLike) -> BBox:
+        return bbox["left"], bbox["top"], bbox["right"], bbox["bottom"]
 
     @staticmethod
     def of_box(bbox: Box) -> BoxLike:
@@ -35,41 +49,6 @@ class BoxMethod:
         })
 
     @staticmethod
-    def offset(box: BoxLike, delta_x: int = 0, delta_y: int = 0) -> BoxLike:
-        return BoxLike(**{
-            **box,
-            'left': box["left"] + delta_x,
-            'top': box["top"] + delta_y,
-        })
-
-    @staticmethod
-    def to_bbox(box: BoxLike) -> 'BBoxLike':
-        return BBoxLike(**{
-            **box,
-            'right': box["left"] + box["width"],
-            'bottom': box["top"] + box["height"],
-        })
-
-
-class BBoxLike(TypedDict):
-    left: int
-    top: int
-    right: int
-    bottom: int
-
-
-class BBoxMethod:
-    @staticmethod
-    def random_point(bbox: BBoxLike) -> tuple[int, int]:
-        x = randint(bbox["left"], bbox["right"])
-        y = randint(bbox["top"], bbox["bottom"])
-        return x, y
-
-    @staticmethod
-    def get_bbox(bbox: BBoxLike) -> BBox:
-        return bbox["left"], bbox["top"], bbox["right"], bbox["bottom"]
-
-    @staticmethod
     def of_bbox(bbox: BBox) -> BBoxLike:
         return BBoxLike(**{
             'left': bbox[0],
@@ -79,7 +58,15 @@ class BBoxMethod:
         })
 
     @staticmethod
-    def offset(bbox: BBoxLike, delta_x: int = 0, delta_y: int = 0) -> BBoxLike:
+    def offset_box(box: BoxLike, delta_x: int = 0, delta_y: int = 0) -> BoxLike:
+        return BoxLike(**{
+            **box,
+            'left': box["left"] + delta_x,
+            'top': box["top"] + delta_y,
+        })
+
+    @staticmethod
+    def offset_bbox(bbox: BBoxLike, delta_x: int = 0, delta_y: int = 0) -> BBoxLike:
         return BBoxLike(**{
             'left': bbox["left"] + delta_x,
             'top': bbox["top"] + delta_y,
@@ -88,13 +75,37 @@ class BBoxMethod:
         })
 
     @staticmethod
+    def to_bbox(box: BoxLike) -> 'BBoxLike':
+        if BoxesMethod.is_bbox_like(box):
+            box: BBoxLike
+            return box
+        else:
+            return BBoxLike(**{
+                **box,
+                'right': box["left"] + box["width"],
+                'bottom': box["top"] + box["height"],
+            })
+
+    @staticmethod
     def to_box(bbox: BBoxLike) -> 'BoxLike':
-        return BoxLike(**{
-            'left': bbox["left"],
-            'top': bbox["top"],
-            'width': bbox["right"] - bbox["left"],
-            'height': bbox["bottom"] - bbox["top"],
-        })
+        if BoxesMethod.is_box_like(bbox):
+            bbox: BoxLike
+            return bbox
+        else:
+            return BoxLike(**{
+                'left': bbox["left"],
+                'top': bbox["top"],
+                'width': bbox["right"] - bbox["left"],
+                'height': bbox["bottom"] - bbox["top"],
+            })
+
+    @staticmethod
+    def is_box_like(box: BoxLike | BBoxLike) -> bool:
+        return set(BoxLike.__annotations__.keys()) == set(box.keys())
+
+    @staticmethod
+    def is_bbox_like(bbox: BoxLike | BBoxLike) -> bool:
+        return set(BBoxLike.__annotations__.keys()) == set(bbox.keys())
 
 
 @deprecated('使用[WindowBox]')

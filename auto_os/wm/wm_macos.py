@@ -1,26 +1,12 @@
-import io
 import subprocess
 
-import shutil
 from time import sleep
 from typing import Optional, Union
 
-import os
-
 import pyautogui
-from PIL import Image
 from loguru import logger
 
-from auto_os import App, WindowInfo, Box
-from tenacity import retry, stop_after_attempt, wait_fixed
-
-
-def _run_apple_script(cmd) -> str:
-    # 执行apple脚本
-    result = subprocess.check_output(cmd, shell=True)
-    # 对结果进行解码（从bytes转换为str），并去除尾部的换行符
-    rst = result.decode('utf-8').strip()
-    return rst
+from auto_os import App, WindowInfo
 
 
 def switch_spaces(to_right: bool = True, with_act_app_wait: float = 1) -> Optional[str]:
@@ -68,55 +54,6 @@ def find_active_app_in_spaces(app: Union[App, str], find_from_left=True, find_ma
         if switch_spaces(to_right=to_right) == app:
             return
     logger.error(f"没找到活跃的[{app}]")
-
-
-def deep_copy(src: str, dst: str, show_log=False, reset_dst=True):
-    """复制文件夹及内容
-    注意,同时也复制符号链接, 而不是复制指向的文件, 适用于container存档覆盖场景
-    :param src: 源
-    :param dst: 目标
-    :param show_log: 打印日志
-    :param reset_dst: True 如果dst已经存在,则清空内容
-    :return:
-    """
-    if show_log:
-        print(f"deep_copy [{src} -> {dst}]")
-    if os.path.exists(dst) and reset_dst:  # 已存在则清空内容
-        shutil.rmtree(dst)
-
-    if not os.path.exists(dst):  # 确保folder存在
-        os.makedirs(dst)
-    for item in os.listdir(src):
-        src_item = os.path.join(src, item)
-        dst_item = os.path.join(dst, item)
-
-        if os.path.islink(src_item):
-            link_target = os.readlink(src_item)
-            os.symlink(link_target, dst_item)
-        elif os.path.isdir(src_item):
-            deep_copy(src_item, dst_item)
-        else:
-            shutil.copy2(src_item, dst_item)
-
-
-def reset_folder(folder: str):  # rmtree 可能报错 xx路径不存在
-    print(f"reset folder [{folder}]")
-    if os.path.exists(folder):
-        shutil.rmtree(folder)
-    os.makedirs(folder)
-
-
-def resource_path(file, res_path: str):
-    """
-    获取相对 .py文件的路径, 用于读取资源文件
-    :param file: 固定传入对应.py的 __file__ 动态变量, 代表正在执行的.py文件的位置.(不一定是入口main.py的位置)
-    :param res_path: 不带 ./ 或 / 的相对.py文件的路径
-    :return:
-    """
-    current_path = os.path.dirname(os.path.abspath(file))
-    # 获取图片的路径
-    path = os.path.join(current_path, res_path)
-    return path
 
 
 # ====
@@ -249,59 +186,3 @@ def set_full_screen():
     with pyautogui.hold('ctrl'):
         with pyautogui.hold('command'):
             pyautogui.press('f')
-
-
-def clipboard_read() -> str:
-    p = subprocess.Popen(['pbpaste', 'r'],
-                         stdout=subprocess.PIPE, close_fds=True)
-    stdout, stderr = p.communicate()
-    return stdout.decode('utf-8')
-
-
-def clipboard_write(text: str):
-    p = subprocess.Popen(['pbcopy', 'w'],
-                         stdin=subprocess.PIPE, close_fds=True)
-    p.communicate(input=text.encode('utf-8'))
-
-
-def paste(text: Optional[str] = None):
-    if text is not None:
-        clipboard_write(text)
-    pyautogui.keyDown('command')
-    pyautogui.press('v')
-    pyautogui.keyUp('command')
-
-
-import Quartz.CoreGraphics as CG
-
-
-def screenshot(region: Box | None = None) -> Image.Image:
-    """Capture a screenshot of the specified region and return a CGImage object.
-    The default region is CG.CGRectInfinite (captures the full screen).
-
-    Args:
-        region: A tuple (left, top, width, height) specifying the region to capture.
-                If None, captures the full screen.
-
-    Returns:
-        A CGImage object representing the captured screenshot.
-    """
-
-    if region is None:
-        region = CG.CGRectInfinite
-    else:
-        region = CG.CGRectMake(region[0], region[1], region[2], region[3])  # 左,上,宽,高
-
-    # Create screenshot as CGImage
-    image = CG.CGWindowListCreateImage(
-        region,
-        CG.kCGWindowListOptionOnScreenOnly,
-        CG.kCGNullWindowID,
-        CG.kCGWindowImageDefault
-    )
-    data = CG.CGDataProviderCopyData(CG.CGImageGetDataProvider(image))
-    width = CG.CGImageGetWidth(image)
-    height = CG.CGImageGetHeight(image)
-    bytes_per_row = CG.CGImageGetBytesPerRow(image)
-    pil_image = Image.frombuffer("RGBA", (width, height), data, "raw", "BGRA", bytes_per_row, 1)
-    return pil_image
