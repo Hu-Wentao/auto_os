@@ -1,7 +1,10 @@
 # Auto OS
+The OS (Operating System) module of the Auto project 
 对操作系统模块进行抽象
+
 ## fs 文件系统 File System
-- 文件操作相关的函数包装
+文件操作相关的函数包装
+- resource_path 用于获取相对于特定文件的文件, 
 
 ## wm 软件窗口管理 Window Manager
 - 包括系统窗口
